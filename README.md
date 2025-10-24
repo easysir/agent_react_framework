@@ -25,8 +25,8 @@
 3. 构建并运行智能体：
    ```python
    from react_framework import Agent, AgentConfig, Tool
-   from react_framework.core.tools import ToolResult
-   from react_framework.llm import OpenAIChatClient
+   from react_framework.core.primitives import ToolResult
+   from react_framework.llm import create_openai_compatible_client
 
 
    def search_tool(arguments: dict) -> ToolResult:
@@ -35,7 +35,7 @@
        return ToolResult(content=f"搜索到的结果: {query[:20]} ...")
 
 
-   llm = OpenAIChatClient(model="gpt-4o-mini")
+   llm = create_openai_compatible_client("openai", model="gpt-4o-mini")
    agent = Agent(
        AgentConfig(
            llm=llm,
@@ -58,13 +58,11 @@
 
 ```
 react_framework/
-  agent.py        # 对外暴露的 Agent API
-  executor.py     # ReAct 循环执行器
-  planning.py     # 任务规划器（LLM 驱动）
-  prompts.py      # 系统 / ReAct Prompt 模板
-  output_parser.py# 模型输出解析器
-  core/           # 基础类型（消息、工具、内存等）
+  core/
+    agent/        # Agent 主流程、计划器、执行器、解析器
+    primitives/   # 消息、工具、记忆等基础数据结构
   llm/            # 不同模型客户端适配
+  __init__.py     # 对外暴露 API
 ```
 
 ## 主要模块说明
@@ -73,13 +71,14 @@ react_framework/
 - `LLMTaskPlanner`：使用 LLM 将用户任务拆分为步骤计划。
 - `AgentExecutor`：驱动 ReAct 循环，解析模型动作、执行工具、收集观察。
 - `ToolRegistry`：管理工具生命周期，支持灵活扩展。
-- `OpenAIChatClient` / `DeepSeekChatClient` / `QwenChatClient`：针对常见兼容接口的 LLM 客户端。
+- `create_openai_compatible_client`：快速实例化指向 OpenAI / DeepSeek / Qwen 等兼容接口的客户端，支持自定义或扩展新的 provider。
 
 ## 扩展与自定义
 
 - **自定义计划器**：实现 `TaskPlanner` 并传入 `AgentConfig`。
 - **替换解析逻辑**：实现自己的输出解析器，确保模型遵循对应 JSON 协议。
 - **新增模型**：继承 `LLMClient` 或基于 `OpenAICompatibleClient` 封装新的 HTTP 客户端。
+- **扩展 Provider**：调用 `register_provider(ProviderSpec(...))` 注册自定义的 OpenAI-Compatible 服务端。
 - **状态持久化**：`Agent.run` 可传入或复用 `ConversationMemory`，实现跨轮对话。
 
 ## 环境变量约定
@@ -93,4 +92,3 @@ react_framework/
 ## 示例
 
 更多可拓展示例，可参考 `examples/` 目录，或直接在业务代码中按需组合工具与模型。
-

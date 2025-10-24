@@ -1,20 +1,61 @@
 """
-Core primitives that compose the agent pipeline.
+Core package bundling the agent orchestration layer and foundational primitives.
 """
 
-from .actions import AgentAction, AgentFinish
-from .memory import ConversationMemory
-from .messages import ChatMessage, MessageRole
-from .tools import Tool, ToolRegistry, ToolResult, ToolExecutionError
+from .agent import (
+    Agent,
+    AgentConfig,
+    AgentExecutor,
+    AgentRunResult,
+    ExecutorConfig,
+    LLMTaskPlanner,
+    PlanResult,
+    PlanStep,
+    ReActOutputParser,
+    TaskPlanner,
+)
+from .primitives import (
+    AgentAction,
+    AgentFinish,
+    ChatMessage,
+    ConversationMemory,
+    MessageRole,
+    Tool,
+    ToolCallable,
+    ToolExecutionError,
+    ToolRegistry,
+    ToolResult,
+    assistant_message,
+    coerce_messages,
+    system_message,
+    tool_message,
+    user_message,
+)
 
 __all__ = [
+    "Agent",
+    "AgentConfig",
+    "AgentExecutor",
+    "AgentRunResult",
+    "ExecutorConfig",
+    "LLMTaskPlanner",
+    "PlanResult",
+    "PlanStep",
+    "ReActOutputParser",
+    "TaskPlanner",
     "AgentAction",
     "AgentFinish",
-    "ConversationMemory",
     "ChatMessage",
+    "ConversationMemory",
     "MessageRole",
     "Tool",
+    "ToolCallable",
+    "ToolExecutionError",
     "ToolRegistry",
     "ToolResult",
-    "ToolExecutionError",
+    "assistant_message",
+    "coerce_messages",
+    "system_message",
+    "tool_message",
+    "user_message",
 ]

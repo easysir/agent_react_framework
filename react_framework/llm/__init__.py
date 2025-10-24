@@ -3,15 +3,21 @@ Convenience exports for built-in LLM clients.
 """
 
 from .base import LLMClient, LLMError, LLMResponse
-from .deepseek import DeepSeekChatClient
-from .openai import OpenAIChatClient
-from .qwen import QwenChatClient
+from .providers import (
+    OpenAICompatibleClient,
+    ProviderSpec,
+    create_openai_compatible_client,
+    list_providers,
+    register_provider,
+)
 
 __all__ = [
     "LLMClient",
     "LLMError",
     "LLMResponse",
-    "DeepSeekChatClient",
-    "OpenAIChatClient",
-    "QwenChatClient",
+    "OpenAICompatibleClient",
+    "ProviderSpec",
+    "create_openai_compatible_client",
+    "list_providers",
+    "register_provider",
 ]

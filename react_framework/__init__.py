@@ -5,14 +5,20 @@ This package exposes the primary Agent interface alongside supporting core
 types that can be used to extend or customize agent behaviour.
 """
 
-from .agent import Agent, AgentConfig
-from .core.actions import AgentAction, AgentFinish
-from .core.messages import ChatMessage, MessageRole
-from .core.tools import Tool, ToolRegistry
+from .core.agent import Agent, AgentConfig, AgentRunResult
+from .core.primitives import (
+    AgentAction,
+    AgentFinish,
+    ChatMessage,
+    MessageRole,
+    Tool,
+    ToolRegistry,
+)
 
 __all__ = [
     "Agent",
     "AgentConfig",
+    "AgentRunResult",
     "AgentAction",
     "AgentFinish",
     "ChatMessage",

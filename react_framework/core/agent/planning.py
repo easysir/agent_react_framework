@@ -9,10 +9,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import List, Sequence
 
-from .core.memory import ConversationMemory
-from .core.tools import ToolRegistry
-from .core.messages import ChatMessage, MessageRole, system_message, user_message
-from .llm import LLMClient
+from ..primitives.memory import ConversationMemory
+from ..primitives.tools import ToolRegistry
+from ..primitives.messages import ChatMessage, MessageRole, system_message, user_message
+from ...llm import LLMClient
 
 
 @dataclass
@@ -53,10 +53,10 @@ If the task is already simple, you may return a single step."""
 class LLMTaskPlanner(TaskPlanner):
     def __init__(
         self,
-        llm: LLMClient,
+        llm: LLMClient,  # 用于生成计划的语言模型客户端
         *,
-        max_context_messages: int = 10,
-        system_prompt: str = PLANNER_SYSTEM_PROMPT,
+        max_context_messages: int = 10,  # 规划时附带的历史消息上限
+        system_prompt: str = PLANNER_SYSTEM_PROMPT,  # 规划器使用的系统提示词
     ) -> None:
         self.llm = llm
         self.max_context_messages = max_context_messages

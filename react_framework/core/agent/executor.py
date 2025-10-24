@@ -7,12 +7,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional, Union
 
-from .core.actions import AgentAction, AgentFinish
-from .core.memory import ConversationMemory
-from .core.messages import ChatMessage, MessageRole, assistant_message, system_message, tool_message
-from .core.tools import ToolExecutionError, ToolRegistry
-from .llm import LLMClient
-from .output_parser import ReActOutputParser
+from ..primitives.actions import AgentAction, AgentFinish
+from ..primitives.memory import ConversationMemory
+from ..primitives.messages import (
+    ChatMessage,
+    MessageRole,
+    assistant_message,
+    system_message,
+    tool_message,
+)
+from ..primitives.tools import ToolExecutionError, ToolRegistry
+from ...llm import LLMClient
+from .parsers import ReActOutputParser
 from .planning import PlanResult
 from .prompts import DEFAULT_SYSTEM_PROMPT, build_react_prompt
 

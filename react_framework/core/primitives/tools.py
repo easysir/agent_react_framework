@@ -25,11 +25,11 @@ ToolCallable = Callable[[Dict[str, Any]], ToolResult]
 
 @dataclass
 class Tool:
-    name: str
-    description: str
-    func: ToolCallable
-    schema: Optional[Dict[str, Any]] = None
-    return_direct: bool = False
+    name: str  # 工具名称（供模型引用）
+    description: str  # 工具用途描述
+    func: ToolCallable  # 实际执行逻辑
+    schema: Optional[Dict[str, Any]] = None  # 参数 JSON Schema，辅助提示模型
+    return_direct: bool = False  # 是否工具结果直接作为最终回答
 
     def __call__(self, arguments: Dict[str, Any]) -> ToolResult:
         return self.func(arguments)

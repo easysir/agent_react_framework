@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, Union
 
-from .core.actions import AgentAction, AgentFinish
+from ..primitives.actions import AgentAction, AgentFinish
 
 
 class ReActOutputParser:

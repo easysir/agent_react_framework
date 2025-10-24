@@ -3,8 +3,8 @@ Basic usage example for the ReAct agent framework.
 """
 
 from react_framework import Agent, AgentConfig, Tool
-from react_framework.core.tools import ToolResult
-from react_framework.llm import OpenAIChatClient
+from react_framework.core.primitives import ToolResult
+from react_framework.llm import create_openai_compatible_client
 
 
 def calculator(arguments: dict) -> ToolResult:
@@ -18,7 +18,7 @@ def calculator(arguments: dict) -> ToolResult:
 
 
 def main() -> None:
-    llm = OpenAIChatClient(model="gpt-4o-mini")
+    llm = create_openai_compatible_client("openai", model="gpt-4o-mini")
     agent = Agent(
         AgentConfig(
             llm=llm,
