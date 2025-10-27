@@ -6,7 +6,7 @@ from .base import LLMClient, LLMError, LLMResponse
 from .providers import (
     OpenAICompatibleClient,
     ProviderSpec,
-    create_openai_compatible_client,
+    create_chat_completion_client,
     list_providers,
     register_provider,
 )
@@ -17,7 +17,7 @@ __all__ = [
     "LLMResponse",
     "OpenAICompatibleClient",
     "ProviderSpec",
-    "create_openai_compatible_client",
+    "create_chat_completion_client",
     "list_providers",
     "register_provider",
 ]

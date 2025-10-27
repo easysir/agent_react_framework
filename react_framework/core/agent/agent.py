@@ -5,6 +5,7 @@ High-level Agent interface that coordinates planning, tool execution, and LLM in
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import logging
 from typing import Iterable, Optional, Sequence
 
 from ..primitives.actions import AgentFinish
@@ -50,6 +51,7 @@ class Agent:
             config=config.executor_config,
         )
         self._memory = ConversationMemory()
+        self._logger = logging.getLogger(__name__)
 
     @property
     def memory(self) -> ConversationMemory:
@@ -77,6 +79,20 @@ class Agent:
             # 否则沿用 Agent 内部累计的历史记忆，实现多轮连续对话
             working_memory = self._memory
         plan = self.planner.plan(task, memory=working_memory, tools=self.tools)
+        plan_text = plan.describe().strip()
+        self._logger.info(
+            "\n%s\n[PLAN]\n%s\n%s",
+            "=" * 80,
+            plan_text or "(planner returned empty plan)",
+            "=" * 80,
+        )
+        memory_summary = self._format_memory_snapshot(working_memory.messages)
+        self._logger.info(
+            "\n%s\n[MEMORY BEFORE EXECUTION]\n%s\n%s",
+            "-" * 80,
+            memory_summary,
+            "-" * 80,
+        )
         finish = self.executor.run(task, memory=working_memory, plan=plan)
         self._record_final_answer(working_memory, finish)
         if self.config.reset_memory_each_run:
@@ -90,10 +106,28 @@ class Agent:
         )
 
     def _record_final_answer(self, memory: ConversationMemory, finish: AgentFinish) -> None:
+        last_message = memory.last()
+        annotation = {"agent_final_answer": True, "log": finish.log}
+        if last_message and last_message.role is MessageRole.ASSISTANT and last_message.content == finish.output:
+            merged_metadata = dict(last_message.metadata or {})
+            merged_metadata.update(annotation)
+            last_message.metadata = merged_metadata
+            return
         memory.append(
             ChatMessage(
                 role=MessageRole.ASSISTANT,
                 content=finish.output,
-                metadata={"agent_final_answer": True, "log": finish.log},
+                metadata=annotation,
             )
         )
+
+    def _format_memory_snapshot(self, messages: Sequence[ChatMessage]) -> str:
+        if not messages:
+            return "(memory is empty)"
+        lines = []
+        for index, message in enumerate(messages, start=1):
+            snippet = message.content.strip().replace("\n", " ")
+            if len(snippet) > 160:
+                snippet = f"{snippet[:157]}..."
+            lines.append(f"{index:02d}. {message.role.value.upper()}: {snippet}")
+        return "\n".join(lines)

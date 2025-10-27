@@ -12,47 +12,24 @@
 
 1. 安装依赖：
    ```bash
-   pip install requests
+   pip install -r requirements.txt
    ```
-   （如需调用 OpenAI 官方 SDK，可自行替换成 `openai` 版本）
 
 2. 设置你要使用的模型对应的环境变量，例如：
    ```bash
    export OPENAI_API_KEY=sk-...
+   export DEEPSEEK_API_KEY=sk-...
    export OPENAI_BASE_URL=https://api.openai.com/v1  # 可选
    ```
 
-3. 构建并运行智能体：
-   ```python
-   from react_framework import Agent, AgentConfig, Tool
-   from react_framework.core.primitives import ToolResult
-   from react_framework.llm import create_openai_compatible_client
-
-
-   def search_tool(arguments: dict) -> ToolResult:
-       query = arguments["query"]
-       # 这里可以接入真实的搜索服务
-       return ToolResult(content=f"搜索到的结果: {query[:20]} ...")
-
-
-   llm = create_openai_compatible_client("openai", model="gpt-4o-mini")
-   agent = Agent(
-       AgentConfig(
-           llm=llm,
-           tools=[
-               Tool(
-                   name="search",
-                   description="进行网络搜索",
-                   schema={"type": "object", "properties": {"query": {"type": "string"}}},
-                   func=search_tool,
-               )
-           ],
-       )
-   )
-
-   result = agent.run("帮我找出最新的三条 AI 新闻，并总结要点")
-   print(result.final_answer)
+3. 运行示例（推荐使用包模块方式，避免路径问题）：
+   ```bash
+   python -m examples.basic_usage
    ```
+   该脚本会：
+   - 构建一个带 `calculator` 工具的 Agent；
+   - 使用 LLM 先生成计划，再迭代执行 ReAct 循环；
+   - 在控制台输出增强后的结构化日志与最终总结。
 
 ## 目录结构
 
@@ -68,10 +45,34 @@ react_framework/
 ## 主要模块说明
 
 - `Agent`：高层接口，组合计划器、工具注册表、执行器与对话记忆。
-- `LLMTaskPlanner`：使用 LLM 将用户任务拆分为步骤计划。
-- `AgentExecutor`：驱动 ReAct 循环，解析模型动作、执行工具、收集观察。
+- `LLMTaskPlanner`：使用规划提示词，要求模型返回 `{"steps": [...]}` JSON，并在解析失败时回退到编号列表。
+- `AgentExecutor`：驱动 ReAct 循环，解析模型动作、执行工具、收集观察，并产生结构化运行日志。
 - `ToolRegistry`：管理工具生命周期，支持灵活扩展。
-- `create_openai_compatible_client`：快速实例化指向 OpenAI / DeepSeek / Qwen 等兼容接口的客户端，支持自定义或扩展新的 provider。
+- `create_chat_completion_client`：快速实例化指向 OpenAI / DeepSeek / Qwen 等兼容接口的客户端，支持自定义或扩展新的 provider。
+
+## 响应协议与兼容性
+
+- **标准 JSON 协议**：系统提示会明确要求模型仅返回单个 JSON 对象：
+  - 工具调用示例：
+    ```json
+    {
+      "type": "tool",
+      "thought": "I should use the calculator to add the numbers.",
+      "tool": "calculator",
+      "input": { "expression": "24 + 18" }
+    }
+    ```
+  - 最终回答示例：
+    ```json
+    {
+      "type": "finish",
+      "thought": "I have the final result.",
+      "final_answer": "Step 1: 24 + 18 = 42. Step 2: 42 * 0.75 = 31.5."
+    }
+    ```
+- **DeepSeek 兼容**：解析器 `_parse_deepseek_markup` 对 DeepSeek 专用的 `<｜tool▁calls▁begin｜>` 标记做了适配，可自动还原为标准工具调用。
+- **纯文本兜底**：若模型最终返回自然语言而非 JSON，解析器会将其视为 `AgentFinish`，执行器会回溯工具轨迹生成带步骤与结果的最终总结。
+- **日志增强**：运行过程中会输出 `[PLAN]`、`[TURN n] TOOL ACTION`、`[LLM REQUEST]` 等分隔块，辅助排查与回放。
 
 ## 扩展与自定义
 
@@ -80,6 +81,7 @@ react_framework/
 - **新增模型**：继承 `LLMClient` 或基于 `OpenAICompatibleClient` 封装新的 HTTP 客户端。
 - **扩展 Provider**：调用 `register_provider(ProviderSpec(...))` 注册自定义的 OpenAI-Compatible 服务端。
 - **状态持久化**：`Agent.run` 可传入或复用 `ConversationMemory`，实现跨轮对话。
+- **Prompt 定制**：若需要进一步约束模型输出，可修改 `react_framework/core/agent/prompts.py` 的系统提示或在构造 `AgentConfig` 时自定义 `ExecutorConfig.system_prompt`。
 
 ## 环境变量约定
 

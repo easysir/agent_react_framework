@@ -17,6 +17,8 @@ class AgentAction:
     tool: str
     input: Dict[str, Any]
     log: str
+    call_id: Optional[str] = None
+    tool_call_payload: Optional[Dict[str, Any]] = None
 
 
 @dataclass

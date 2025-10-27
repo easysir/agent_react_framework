@@ -5,10 +5,12 @@ Provider registry and OpenAI-compatible client implementation.
 from __future__ import annotations
 
 import os
+import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
 
 import requests
+import json
 
 from .base import LLMClient, LLMError, LLMResponse
 from ..core.primitives.messages import ChatMessage
@@ -106,10 +108,33 @@ class OpenAICompatibleClient(LLMClient):
             max_output_tokens=max_output_tokens,
             **kwargs,
         )
+        formatted_payload = json.dumps(payload, indent=2, ensure_ascii=False)
+        LOGGER.info(
+            "\n%s\n[LLM REQUEST] %s\nPayload:\n%s\n%s",
+            "=" * 80,
+            self.endpoint,
+            formatted_payload,
+            "=" * 80,
+        )
         response = requests.post(self.endpoint, json=payload, headers=self.headers, timeout=self.timeout)
+        response_body: Optional[Dict[str, Any]] = None
+        try:
+            response_body = response.json()
+            formatted_response = json.dumps(response_body, indent=2, ensure_ascii=False)
+        except ValueError:
+            formatted_response = response.text
+        LOGGER.info(
+            "\n%s\n[LLM RESPONSE] status=%s\n%s\n%s",
+            "=" * 80,
+            response.status_code,
+            formatted_response,
+            "=" * 80,
+        )
         if response.status_code >= 400:
-            raise LLMError(f"LLM request failed ({response.status_code}): {response.text}")
-        body: Dict[str, Any] = response.json()
+            raise LLMError(f"LLM request failed ({response.status_code}): {formatted_response}")
+        if response_body is None:
+            raise LLMError("LLM response was not valid JSON.")
+        body = response_body
         try:
             choice = body["choices"][0]
             message = choice["message"]
@@ -161,7 +186,7 @@ def list_providers() -> Iterable[str]:
     return tuple(_PROVIDER_REGISTRY.keys())
 
 
-def create_openai_compatible_client(
+def create_chat_completion_client(
     provider: str,
     model: str,
     *,
@@ -174,7 +199,7 @@ def create_openai_compatible_client(
     max_output_tokens: Optional[int] = None,
 ) -> OpenAICompatibleClient:
     """
-    Instantiate an OpenAI-compatible client for a registered provider.
+    Instantiate a chat-completion client for a registered provider (OpenAI-compatible schema).
     """
 
     try:
@@ -197,3 +222,4 @@ def create_openai_compatible_client(
         temperature=temperature,
         max_output_tokens=max_output_tokens,
     )
+LOGGER = logging.getLogger(__name__)

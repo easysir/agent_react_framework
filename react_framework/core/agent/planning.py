@@ -69,6 +69,7 @@ class LLMTaskPlanner(TaskPlanner):
         memory: ConversationMemory,
         tools: ToolRegistry,
     ) -> PlanResult:
+        # 获取最近的 max_context_messages 条消息作为上下文注入
         context_messages = memory.snapshot()[-self.max_context_messages :]
         messages: List[ChatMessage] = [system_message(self.system_prompt)]
         if context_messages:

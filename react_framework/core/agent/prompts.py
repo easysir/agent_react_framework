@@ -9,10 +9,27 @@ from textwrap import dedent
 
 DEFAULT_SYSTEM_PROMPT = dedent(
     """
-    You are an AI assistant that can reason about complex tasks and call tools.
-    Follow the ReAct pattern: think about what to do, decide whether to call a tool,
-    observe the result, and continue until you can provide a final answer.
-    Always respond strictly in JSON matching the documented schema.
+    You are an AI assistant that must reason about tasks and optionally call tools.
+    Follow the ReAct pattern: think, decide on an action, observe results, and iterate until you can finish.
+
+    Output Requirements:
+    - Reply with a single JSON object only (no prose before or after).
+    - Valid tool call response (example):
+      {
+        "type": "tool",
+        "thought": "I should use the calculator to add the numbers.",
+        "tool": "calculator",
+        "input": {
+          "expression": "24 + 18"
+        }
+      }
+    - Valid final answer response (example):
+      {
+        "type": "finish",
+        "thought": "I have the final result and can explain it.",
+        "final_answer": "Step 1: 24 + 18 = 42. Step 2: 42 * 0.75 = 31.5."
+      }
+    - Do not emit any other keys. Ensure the JSON is valid (double quotes, proper commas).
     """
 ).strip()
 
@@ -35,6 +52,6 @@ def build_react_prompt(
         Available tools:
         {tool_section}
 
-        Respond with JSON describing either a tool call or the final answer.
+        Respond with one JSON object that follows the schema in the system instructions.
         """
     ).strip()

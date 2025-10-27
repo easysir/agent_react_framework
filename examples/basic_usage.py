@@ -2,9 +2,11 @@
 Basic usage example for the ReAct agent framework.
 """
 
+import logging
+
 from react_framework import Agent, AgentConfig, Tool
 from react_framework.core.primitives import ToolResult
-from react_framework.llm import create_openai_compatible_client
+from react_framework.llm import create_chat_completion_client
 
 
 def calculator(arguments: dict) -> ToolResult:
@@ -18,7 +20,8 @@ def calculator(arguments: dict) -> ToolResult:
 
 
 def main() -> None:
-    llm = create_openai_compatible_client("openai", model="gpt-4o-mini")
+    logging.basicConfig(level=logging.INFO)
+    llm = create_chat_completion_client("deepseek", model="deepseek-chat")
     agent = Agent(
         AgentConfig(
             llm=llm,
